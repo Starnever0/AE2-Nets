@@ -2,7 +2,8 @@ import math
 
 
 def next_batch(X1, X2, batch_size):
-    tot = X1.shape[0]
+    # 用来生成大小为 batch_size 的数据批次
+    tot = X1.shape[0] # 总样本数
     total = math.ceil(tot / batch_size)  # fix the last batch
     for i in range(int(total)):
         start_idx = i * batch_size

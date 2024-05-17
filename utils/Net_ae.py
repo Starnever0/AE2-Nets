@@ -5,7 +5,7 @@ from tensorflow.contrib import layers
 class Net_ae(object):
     def __init__(self, v, dims_encoder, para_lambda, activation, reg=None):
         """
-        Building view-specific autoencoder network
+        Building view-specific autoencoder network 建立特定视图的自编码器网络（inner ae）
         :param v:  view number
         :param dims_encoder: nodes of encoding layers, [input-layer, hidden-layer, ..., middle-layer]
         :param para_lambda: trade-off factor in objective
@@ -14,14 +14,14 @@ class Net_ae(object):
         """
         self.v = v
         self.dims_encoder = dims_encoder
-        self.dims_decoder = [i for i in reversed(dims_encoder)]
-        self.num_layers = len(self.dims_encoder)
+        self.dims_decoder = [i for i in reversed(dims_encoder)] #反转dims_encoder作为解码器的维度
+        self.num_layers = len(self.dims_encoder) #编码器的层数——2
         self.para_lambda = para_lambda
         self.activation = activation
         self.reg = reg
         if activation in ['tanh', 'sigmoid']:
             self.initializer = layers.xavier_initializer()
-        if activation == 'relu':
+        if activation == 'relu': 
             self.initializer = layers.variance_scaling_initializer(mode='FAN_AVG')
 
         self.weights, self.netpara = self.init_weights()
@@ -50,6 +50,7 @@ class Net_ae(object):
         return all_weights, aenet
 
     def encoder(self, x, weights):
+        # 前一半非线性层作为编码器
         """
         :param x: input (feature)
         :param weights: weights of encoder
@@ -101,6 +102,12 @@ class Net_ae(object):
         return layer
 
     def loss_reconstruct(self, x):
+        # 重构损失
+        # x编码得到z_half，z_half解码得到z，计算x与z的差异
+        """
+        \min _{\left\{\boldsymbol{\Theta}_{\mathrm{ac}}^{(v)}\right\}_{v=1}^V} 
+            \frac{1}{2} \sum_{v=1}^V\left\|\mathbf{X}^{(v)}-\mathbf{Z}^{(M, v)}\right\|_F^2
+        """
         z_half = self.encoder(x, self.weights)
         z = self.decoder(z_half, self.weights)
         loss = 0.5 * tf.reduce_mean(tf.pow(tf.subtract(x, z), 2.0))
@@ -114,6 +121,8 @@ class Net_ae(object):
         return self.decoder(z_half, self.weights)
 
     def loss_total(self, x, g):
+        # 总损失=重构损失+外部ae损失
+        # h映射到z_half，z_half与g的差异
         """
         :param x: input
         :param g: output of dg net

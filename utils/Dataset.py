@@ -20,7 +20,7 @@ class Dataset():
         else:
             dataset = h5py.File(data_path, mode='r')
             x1, x2, y = dataset['x1'], dataset['x2'], dataset['gt']
-            x1, x2, y = x1.value, x2.value, y.value
+            x1, x2, y = x1[:], x2[:], y[:]
             x1, x2, y = x1.transpose(), x2.transpose(), y.transpose()
             tmp = np.zeros(y.shape[0])
             y = np.reshape(y, np.shape(tmp))

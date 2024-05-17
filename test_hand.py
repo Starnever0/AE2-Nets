@@ -2,6 +2,7 @@ from utils.Dataset import Dataset
 from model import model
 from utils.print_result import print_result
 import os
+from sklearn.model_selection import train_test_split
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 '''
@@ -10,12 +11,17 @@ ae net need pretraining before the whole optimization
 '''
 if __name__ == '__main__':
     data = Dataset('handwritten_2views')
+
+    task_list = ['clustering', 'classification']
+    task = task_list[1]
+
     x1, x2, gt = data.load_data()
     x1 = data.normalize(x1, 0)
     x2 = data.normalize(x2, 0)
     n_clusters = len(set(gt))
 
     act_ae1, act_ae2, act_dg1, act_dg2 = 'sigmoid', 'sigmoid', 'sigmoid', 'sigmoid'
+    # 中间隐藏层200个节点
     dims_ae1 = [240, 200]
     dims_ae2 = [216, 200]
     dims_dg1 = [64, 200]
@@ -36,4 +42,15 @@ if __name__ == '__main__':
     epochs = [epochs_pre, epochs_total, epochs_h]
 
     H, gt = model(x1, x2, gt, para_lambda, dims, act, lr, epochs, batch_size)
-    print_result(n_clusters, H, gt)
+    
+    # import scipy.io as sio
+    # # 加载.mat文件
+    # data = sio.loadmat('H.mat')
+    # # 从字典中提取数据
+    # H = data['H']
+    # gt = data['gt'].ravel()
+
+    if task == 'clustering':
+        print_result(n_clusters, H, gt, task)
+    elif task == 'classification':
+        print_result(0, H, gt, task)

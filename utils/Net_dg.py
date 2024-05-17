@@ -3,6 +3,7 @@ from tensorflow.contrib import layers
 
 
 class Net_dg(object):
+    # degradation network，外部ae
     def __init__(self, v, dims_net, activation, reg=None):
         """
         :param v: view number
@@ -58,6 +59,12 @@ class Net_dg(object):
         return layer
 
     def loss_degradation(self, h, z_half):
+        # 外ae的损失，使h的输出g逼近z_half
+        """
+        \min _{\left\{\boldsymbol{\Theta}_{\mathrm{dg}}^{(0)}\right\}_{v=1}^V} 
+            \frac{1}{2} \sum_{v=1}^V\left
+            \|\mathbf{Z}^{\left(\frac{M}{2}, v\right)}-\mathbf{G}^{(L, v)}\right\|_F^2 \\
+        """
         g = self.degradation(h, self.weights)
         # loss = 0.5 * tf.reduce_sum(tf.pow(tf.subtract(z_half, g), 2.0))
         loss = tf.losses.mean_squared_error(z_half, g)
